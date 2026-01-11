@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "930311416952",
+    "firebase_url": "https://dsignertv-default-rtdb.firebaseio.com",
+    "project_id": "dsignertv",
+    "storage_bucket": "dsignertv.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:930311416952:android:fd79ad9853febe1b92d18d",
+        "android_client_info": {
+          "package_name": "com.dsigner.dskey"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "930311416952-qd9irg65jlbjtvmq0i9vtn53t0t7ae58.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBs7SIANOkX5WhkQO9ba_a-v3WTpocKAZE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "930311416952-qd9irg65jlbjtvmq0i9vtn53t0t7ae58.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

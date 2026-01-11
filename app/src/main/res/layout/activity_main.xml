@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- PLAYER DE VÍDEO -->
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/playerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- IMAGEM -->
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:visibility="gone" />
+
+    <!-- OVERLAY VER CÓDIGO -->
+    <LinearLayout
+        android:id="@+id/codeOverlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:background="#CC000000"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CÓDIGO"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#00FFCC" />
+
+        <TextView
+            android:id="@+id/tvOverlayCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CÓDIGO"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:fontFamily="monospace"
+            android:paddingTop="12dp" />
+    </LinearLayout>
+
+    <!-- LAYOUT GERADOR -->
+    <LinearLayout
+        android:id="@+id/generatorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:background="#1a1f3b">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DSIGNER"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#00d4ff" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="VÁ PARA NOSSO PAINEL EM\ndsignertv.com.br"
+            android:textColor="#B0EFFF"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:padding="16dp" />
+
+        <TextView
+            android:id="@+id/tvKey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GERANDO CHAVE..."
+            android:textColor="#00d4ff"
+            android:textSize="22sp"
+            android:fontFamily="monospace"
+            android:padding="20dp"
+            android:background="#000000" />
+    </LinearLayout>
+
+</FrameLayout>
