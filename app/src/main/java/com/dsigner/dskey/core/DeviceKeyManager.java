@@ -3,32 +3,34 @@ package com.dsigner.dskey.core;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.util.Locale;
 import java.util.Random;
 
 public class DeviceKeyManager {
 
     private static final String PREF = "dskey_prefs";
-    private static final String KEY = "device_key";
-    private static final String CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    private static final String KEY = "activation_key";
 
-    public static String getOrCreate(Context ctx) {
-        SharedPreferences sp = ctx.getSharedPreferences(PREF, Context.MODE_PRIVATE);
+    public static String getOrCreate(Context c) {
+        SharedPreferences sp = c.getSharedPreferences(PREF, Context.MODE_PRIVATE);
         String key = sp.getString(KEY, null);
-        if (key != null) return key;
 
-        key = generate();
-        sp.edit().putString(KEY, key).apply();
+        if (key == null) {
+            key = generate();
+            sp.edit().putString(KEY, key).apply();
+        }
         return key;
     }
 
     private static String generate() {
+        String letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         Random r = new Random();
-        return "" + CHARS.charAt(r.nextInt(CHARS.length())) +
-                CHARS.charAt(r.nextInt(CHARS.length())) +
-                CHARS.charAt(r.nextInt(CHARS.length())) +
-                "-" +
-                CHARS.charAt(r.nextInt(CHARS.length())) +
-                CHARS.charAt(r.nextInt(CHARS.length())) +
-                CHARS.charAt(r.nextInt(CHARS.length()));
+
+        return String.format(Locale.US, "%c%c%c-%03d",
+                letters.charAt(r.nextInt(26)),
+                letters.charAt(r.nextInt(26)),
+                letters.charAt(r.nextInt(26)),
+                r.nextInt(1000)
+        );
     }
 }

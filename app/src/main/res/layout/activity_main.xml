@@ -5,22 +5,25 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <!-- PLAYER DE VÍDEO -->
+    <!-- ================= VÍDEO FULLSCREEN ================= -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/playerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:keepScreenOn="true"
+        android:background="#000000" />
 
-    <!-- IMAGEM -->
+    <!-- ================= IMAGEM FULLSCREEN ================= -->
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitCenter"
-        android:visibility="gone" />
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        android:background="#000000" />
 
-    <!-- OVERLAY VER CÓDIGO -->
+    <!-- ================= OVERLAY DO CÓDIGO (TOQUE / VOLTAR) ================= -->
     <LinearLayout
         android:id="@+id/codeOverlay"
         android:layout_width="wrap_content"
@@ -36,58 +39,58 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="CÓDIGO"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#00FFCC" />
+            android:textColor="#00FFCC"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/tvOverlayCode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CÓDIGO"
-            android:textSize="18sp"
+            android:text="ABC-123"
             android:textColor="#FFFFFF"
+            android:textSize="18sp"
             android:fontFamily="monospace"
-            android:paddingTop="12dp" />
+            android:paddingTop="12dp"/>
     </LinearLayout>
 
-    <!-- LAYOUT GERADOR -->
+    <!-- ================= TELA INICIAL / SEM MÍDIA ================= -->
     <LinearLayout
         android:id="@+id/generatorLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
-        android:padding="24dp"
-        android:background="#1a1f3b">
+        android:background="#0e132a">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="DSIGNER"
-            android:textSize="32sp"
+            android:text="D'SIGNER"
+            android:textSize="34sp"
             android:textStyle="bold"
-            android:textColor="#00d4ff" />
+            android:textColor="#00d4ff"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="VÁ PARA NOSSO PAINEL EM\ndsignertv.com.br"
-            android:textColor="#B0EFFF"
+            android:textColor="#9adfff"
             android:textSize="16sp"
             android:gravity="center"
-            android:padding="16dp" />
+            android:padding="12dp"/>
 
         <TextView
             android:id="@+id/tvKey"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="GERANDO CHAVE..."
-            android:textColor="#00d4ff"
-            android:textSize="22sp"
+            android:text="ABC-123"
+            android:textColor="#00FFCC"
+            android:textSize="36sp"
+            android:textStyle="bold"
             android:fontFamily="monospace"
-            android:padding="20dp"
-            android:background="#000000" />
+            android:padding="24dp"
+            android:background="@drawable/bg_code_neon"/>
     </LinearLayout>
 
 </FrameLayout>

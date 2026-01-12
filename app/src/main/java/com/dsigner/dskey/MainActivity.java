@@ -1,49 +1,42 @@
 package com.dsigner.dskey;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
 import com.bumptech.glide.Glide;
-import com.dsigner.dskey.core.BootVideoManager;
 import com.dsigner.dskey.core.DeviceKeyManager;
-import com.dsigner.dskey.core.MediaDownloader;
+import com.dsigner.dskey.offline.*;
 import com.google.firebase.database.*;
+
+import org.json.JSONObject;
 
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
-    private PlayerView playerView;
-    private ImageView imageView;
-    private LinearLayout generatorLayout, codeOverlay;
-    private TextView tvKey, tvOverlayCode;
+    PlayerView playerView;
+    ImageView imageView;
+    TextView tvKey;
+    TextView tvOverlayCode;
+    View codeOverlay;
+    View generatorLayout;
 
-    private ExoPlayer player;
-    private String deviceKey;
+    ExoPlayer player;
+    String key;
 
-    // 🔑 CONTROLE CORRETO DE ESTADO
-    private String currentPlayingUrl = null;
-    private boolean isDownloading = false;
-
-    private final Handler handler = new Handler();
+    Handler handler = new Handler();
+    Runnable hideOverlayRunnable;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -51,158 +44,140 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         playerView = findViewById(R.id.playerView);
-        imageView = findViewById(R.id.imageView);
-        generatorLayout = findViewById(R.id.generatorLayout);
-        codeOverlay = findViewById(R.id.codeOverlay);
-        tvKey = findViewById(R.id.tvKey);
+        imageView  = findViewById(R.id.imageView);
+        tvKey      = findViewById(R.id.tvKey);
         tvOverlayCode = findViewById(R.id.tvOverlayCode);
+        codeOverlay = findViewById(R.id.codeOverlay);
+        generatorLayout = findViewById(R.id.generatorLayout);
 
-        deviceKey = DeviceKeyManager.getOrCreate(this);
-        tvKey.setText(deviceKey);
-        tvOverlayCode.setText(deviceKey);
-
-        requestPermission();
-        BootVideoManager.getDir();
+        key = DeviceKeyManager.getOrCreate(this);
+        tvKey.setText(key);
+        tvOverlayCode.setText(key);
 
         player = new ExoPlayer.Builder(this).build();
-        playerView.setUseController(false);
         playerView.setPlayer(player);
+        playerView.setUseController(false);
 
-        // ▶️ SEMPRE toca o local primeiro
-        playLocalIfExists();
+        // ▶️ Tenta rodar OFFLINE primeiro
+        playOffline();
 
-        // 🌐 LISTENER SEMPRE ATIVO QUANDO TEM INTERNET
-        if (hasInternet()) {
-            startRealtimeListener();
+        // 📡 Firebase online
+        if (NetworkUtils.hasInternet(this)) {
+            listenFirebase();
         }
 
-        getOnBackPressedDispatcher().addCallback(this,
-                new OnBackPressedCallback(true) {
-                    @Override public void handleOnBackPressed() {
-                        showOverlay();
-                    }
-                });
+        // 🔙 BOTÃO VOLTAR (ANDROID MODERNO)
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                showCodeOverlay();
+            }
+        });
 
-        findViewById(android.R.id.content).setOnTouchListener((v, e) -> {
-            if (e.getAction() == MotionEvent.ACTION_DOWN) showOverlay();
+        // 👆 TOQUE NA TELA
+        findViewById(android.R.id.content).setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                showCodeOverlay();
+            }
             return true;
         });
     }
 
-    // 🔥 LISTENER REALTIME CORRETO
-    private void startRealtimeListener() {
+    // =========================
+    // MOSTRAR CÓDIGO POR 10s
+    // =========================
+    private void showCodeOverlay() {
+        codeOverlay.setVisibility(View.VISIBLE);
+
+        if (hideOverlayRunnable != null) {
+            handler.removeCallbacks(hideOverlayRunnable);
+        }
+
+        hideOverlayRunnable = () -> codeOverlay.setVisibility(View.GONE);
+        handler.postDelayed(hideOverlayRunnable, 10_000);
+    }
+
+    // =========================
+    // OFFLINE
+    // =========================
+    private void playOffline() {
+        JSONObject o = BootMediaManager.read(this);
+        if (o == null) {
+            showGenerator();
+            return;
+        }
+
+        File media = BootMediaManager.getMediaFile(this);
+        if (!media.exists()) {
+            showGenerator();
+            return;
+        }
+
+        String tipo = o.optString("tipo");
+
+        hideGenerator();
+        player.stop();
+        playerView.setVisibility(View.GONE);
+        imageView.setVisibility(View.GONE);
+
+        if ("video".equals(tipo)) {
+            playerView.setVisibility(View.VISIBLE);
+            player.setMediaItem(MediaItem.fromUri(media.toURI().toString()));
+            player.setRepeatMode(Player.REPEAT_MODE_ALL);
+            player.prepare();
+            player.play();
+        } else if ("image".equals(tipo)) {
+            imageView.setVisibility(View.VISIBLE);
+            Glide.with(this).load(media).into(imageView);
+        }
+    }
+
+    // =========================
+    // FIREBASE
+    // =========================
+    private void listenFirebase() {
         DatabaseReference ref = FirebaseDatabase.getInstance()
                 .getReference("midia")
-                .child(deviceKey);
+                .child(key);
 
         ref.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snap) {
-
-                if (!snap.exists()) return;
-
-                String tipo = snap.child("tipo").getValue(String.class);
-                String url  = snap.child("url").getValue(String.class);
-
+            public void onDataChange(DataSnapshot s) {
+                String tipo = s.child("tipo").getValue(String.class);
+                String url  = s.child("url").getValue(String.class);
                 if (tipo == null || url == null) return;
 
-                // 🖼️ IMAGEM
-                if ("image".equals(tipo)) {
-                    if (url.equals(currentPlayingUrl)) return;
-
-                    currentPlayingUrl = url;
-                    showImageOnline(url);
+                JSONObject old = BootMediaManager.read(MainActivity.this);
+                if (old != null && url.equals(old.optString("url"))) {
                     return;
                 }
 
-                // 🎥 VÍDEO
-                if (!"video".equals(tipo)) return;
-
-                // SE JÁ ESTÁ TOCANDO ESSE VÍDEO → NÃO FAZ NADA
-                if (url.equals(currentPlayingUrl)) return;
-
-                // ▶️ CONTINUA TOCANDO O ATUAL, MAS BAIXA O NOVO
-                if (isDownloading) return;
-                isDownloading = true;
+                File mediaFile = BootMediaManager.getMediaFile(MainActivity.this);
 
                 new Thread(() -> {
-                    File dest = BootVideoManager.getVideo();
-                    boolean ok = MediaDownloader.download(url, dest);
-
-                    runOnUiThread(() -> {
-                        isDownloading = false;
-                        if (ok) {
-                            currentPlayingUrl = url;
-                            playLocalVideo();
-                        }
-                    });
+                    try {
+                        BootMediaManager.clearMedia(MainActivity.this);
+                        MediaDownloader.download(url, mediaFile);
+                        BootMediaManager.save(MainActivity.this, tipo, url);
+                        runOnUiThread(() -> playOffline());
+                    } catch (Exception ignored) {}
                 }).start();
             }
 
-            @Override public void onCancelled(DatabaseError error) {}
+            @Override public void onCancelled(DatabaseError e) {}
         });
     }
 
-    // ▶️ TOCA LOCAL SE EXISTIR
-    private void playLocalIfExists() {
-        if (BootVideoManager.hasVideo()) {
-            playLocalVideo();
-        } else {
-            showGenerator();
-        }
-    }
-
-    private void playLocalVideo() {
-        generatorLayout.setVisibility(View.GONE);
-        imageView.setVisibility(View.GONE);
-        codeOverlay.setVisibility(View.GONE);
-        playerView.setVisibility(View.VISIBLE);
-
-        player.setMediaItem(MediaItem.fromUri(
-                BootVideoManager.getVideo().toURI().toString()
-        ));
-        player.setRepeatMode(Player.REPEAT_MODE_ALL);
-        player.prepare();
-        player.play();
-    }
-
-    private void showImageOnline(String url) {
-        playerView.setVisibility(View.GONE);
-        generatorLayout.setVisibility(View.GONE);
-        codeOverlay.setVisibility(View.GONE);
-        imageView.setVisibility(View.VISIBLE);
-
-        Glide.with(this).load(url).into(imageView);
-    }
-
     private void showGenerator() {
+        generatorLayout.setVisibility(View.VISIBLE);
+        tvKey.setVisibility(View.VISIBLE);
         playerView.setVisibility(View.GONE);
         imageView.setVisibility(View.GONE);
-        generatorLayout.setVisibility(View.VISIBLE);
     }
 
-    private void showOverlay() {
-        codeOverlay.setVisibility(View.VISIBLE);
-        handler.postDelayed(() ->
-                codeOverlay.setVisibility(View.GONE), 10_000);
-    }
-
-    private boolean hasInternet() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-        NetworkInfo net = cm.getActiveNetworkInfo();
-        return net != null && net.isConnected();
-    }
-
-    private void requestPermission() {
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    1);
-        }
+    private void hideGenerator() {
+        generatorLayout.setVisibility(View.GONE);
+        tvKey.setVisibility(View.GONE);
     }
 
     @Override
