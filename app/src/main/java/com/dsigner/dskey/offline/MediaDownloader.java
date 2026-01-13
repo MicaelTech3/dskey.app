@@ -1,29 +1,44 @@
 package com.dsigner.dskey.offline;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.net.URL;
+import android.util.Log;
+
+import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class MediaDownloader {
 
+    private static final String TAG = "DSKEY_DOWNLOADER";
+
     public static void download(String urlStr, File outFile) throws Exception {
+
+        Log.d(TAG, "Download iniciado");
+        Log.d(TAG, "URL: " + urlStr);
+        Log.d(TAG, "Destino: " + outFile.getAbsolutePath());
+
         URL url = new URL(urlStr);
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
+        c.setConnectTimeout(15000);
+        c.setReadTimeout(30000);
         c.connect();
 
-        InputStream is = c.getInputStream();
-        FileOutputStream fos = new FileOutputStream(outFile);
-
-        byte[] buffer = new byte[4096];
-        int len;
-        while ((len = is.read(buffer)) > 0) {
-            fos.write(buffer, 0, len);
+        if (c.getResponseCode() != 200) {
+            throw new IOException("HTTP " + c.getResponseCode());
         }
 
-        fos.close();
-        is.close();
-        c.disconnect();
+        InputStream in = c.getInputStream();
+        FileOutputStream out = new FileOutputStream(outFile);
+
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = in.read(buf)) > 0) {
+            out.write(buf, 0, n);
+        }
+
+        out.flush();
+        out.close();
+        in.close();
+
+        Log.d(TAG, "Download concluído com sucesso");
     }
 }
