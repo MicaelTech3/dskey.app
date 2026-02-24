@@ -24,15 +24,20 @@
         android:theme="@style/Theme.DsKey"
         android:usesCleartextTraffic="true">
 
+        <!--
+            🚪 ENTRY POINT — WelcomeActivity é a porta de entrada.
+            Na primeira abertura mostra onboarding. Nas seguintes vai direto para MainActivity.
+            Ela herda todos os intent-filters de launcher pois é quem o sistema chama.
+        -->
         <activity
-            android:name=".MainActivity"
+            android:name=".WelcomeActivity"
             android:exported="true"
             android:screenOrientation="landscape">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <!-- 🔥 ESSENCIAL PARA LAUNCHER -->
+                <!-- 🔥 ESSENCIAL PARA LAUNCHER (abre com o sistema) -->
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
 
@@ -44,6 +49,12 @@
             </intent-filter>
 
         </activity>
+
+        <!-- MainActivity não precisa de intent-filter, é chamada pela WelcomeActivity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
 
     </application>
 
