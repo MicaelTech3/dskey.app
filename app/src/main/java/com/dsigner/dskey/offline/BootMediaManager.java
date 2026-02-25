@@ -12,43 +12,35 @@ public class BootMediaManager {
 
     private static final String TAG       = "DSKEY_BOOT";
     private static final String DIR_NAME  = "bootVideo";
-    private static final String MEDIA_NAME = "media.file";
-    private static final String JSON_NAME  = "media.json";
+    private static final String JSON_NAME = "media.json";
 
-    // ─── Pasta base ──────────────────────────────────────────────────────────
     public static File getBaseDir(Context ctx) {
         File dir = new File(ctx.getExternalFilesDir(null), DIR_NAME);
         if (!dir.exists()) dir.mkdirs();
         return dir;
     }
 
-    // ─── Arquivo de mídia única ───────────────────────────────────────────────
     public static File getMediaFile(Context ctx) {
-        return new File(getBaseDir(ctx), MEDIA_NAME);
+        return new File(getBaseDir(ctx), "media.file");
     }
 
-    // ─── Arquivo de item de playlist pelo índice ──────────────────────────────
     public static File getPlaylistFile(Context ctx, int index) {
         return new File(getBaseDir(ctx), "playlist_" + index + ".file");
     }
 
-    // ─── JSON ─────────────────────────────────────────────────────────────────
     public static File getJsonFile(Context ctx) {
         return new File(getBaseDir(ctx), JSON_NAME);
     }
 
-    // ─── Ler JSON salvo ───────────────────────────────────────────────────────
     public static JSONObject read(Context ctx) {
         try {
             File json = getJsonFile(ctx);
             if (!json.exists()) return null;
-
             BufferedReader br = new BufferedReader(new FileReader(json));
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = br.readLine()) != null) sb.append(line);
             br.close();
-
             return new JSONObject(sb.toString());
         } catch (Exception e) {
             Log.e(TAG, "Erro ao ler JSON", e);
@@ -56,7 +48,7 @@ public class BootMediaManager {
         }
     }
 
-    // ─── Salvar mídia única ───────────────────────────────────────────────────
+    /** Salva mídia única (image/gif/video/mov) */
     public static void save(Context ctx, String tipo, String url, File mediaFile) {
         try {
             JSONObject o = new JSONObject();
@@ -64,31 +56,40 @@ public class BootMediaManager {
             o.put("url", url);
             o.put("path", mediaFile.getAbsolutePath());
             o.put("timestamp", System.currentTimeMillis());
-
-            writeJson(ctx, o.toString());
-            Log.d(TAG, "JSON (única) salvo");
+            writeJson(ctx, o);
         } catch (Exception e) {
-            Log.e(TAG, "Erro ao salvar JSON única", e);
+            Log.e(TAG, "Erro ao salvar JSON", e);
         }
     }
 
-    // ─── Salvar playlist ──────────────────────────────────────────────────────
+    /** Salva playlist com itens */
     public static void savePlaylist(Context ctx, JSONArray items) {
         try {
             JSONObject o = new JSONObject();
             o.put("tipo", "playlist");
             o.put("items", items);
             o.put("timestamp", System.currentTimeMillis());
-
-            writeJson(ctx, o.toString());
-            Log.d(TAG, "JSON (playlist) salvo: " + items.length() + " itens");
+            writeJson(ctx, o);
+            Log.d(TAG, "Playlist salva: " + items.length() + " itens");
         } catch (Exception e) {
-            Log.e(TAG, "Erro ao salvar JSON playlist", e);
+            Log.e(TAG, "Erro ao salvar playlist", e);
         }
     }
 
-    // ─── Limpar toda a pasta ──────────────────────────────────────────────────
-    public static void clearAll(Context ctx) {
+    /** Salva estado de playlist vazia (para mostrar mensagem correta offline) */
+    public static void saveEmptyPlaylist(Context ctx) {
+        try {
+            JSONObject o = new JSONObject();
+            o.put("tipo", "empty_playlist");
+            o.put("timestamp", System.currentTimeMillis());
+            writeJson(ctx, o);
+            Log.d(TAG, "Estado: playlist vazia salvo");
+        } catch (Exception e) {
+            Log.e(TAG, "Erro ao salvar estado vazio", e);
+        }
+    }
+
+    public static void clear(Context ctx) {
         File dir = getBaseDir(ctx);
         File[] files = dir.listFiles();
         if (files == null) return;
@@ -96,15 +97,9 @@ public class BootMediaManager {
         Log.d(TAG, "Pasta bootVideo limpa");
     }
 
-    /** @deprecated use clearAll */
-    public static void clear(Context ctx) {
-        clearAll(ctx);
-    }
-
-    // ─── Helper: escreve string no JSON ──────────────────────────────────────
-    private static void writeJson(Context ctx, String content) throws IOException {
+    private static void writeJson(Context ctx, JSONObject o) throws Exception {
         FileWriter fw = new FileWriter(getJsonFile(ctx));
-        fw.write(content);
+        fw.write(o.toString());
         fw.close();
     }
 }

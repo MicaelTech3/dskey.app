@@ -54,7 +54,7 @@
             android:paddingTop="12dp" />
     </LinearLayout>
 
-    <!-- ================= TELA INICIAL / SEM MÍDIA ================= -->
+    <!-- ================= TELA: SEM MÍDIA CONFIGURADA ================= -->
     <LinearLayout
         android:id="@+id/generatorLayout"
         android:layout_width="match_parent"
@@ -93,6 +93,45 @@
             android:padding="24dp"
             android:letterSpacing="0.2"
             android:background="@drawable/bg_code_neon" />
+    </LinearLayout>
+
+    <!-- ================= TELA: PLAYLIST VAZIA ================= -->
+    <LinearLayout
+        android:id="@+id/emptyPlaylistLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:background="#0a0f1e"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📋"
+            android:textSize="64sp"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nenhuma mídia na playlist"
+            android:textColor="#ffffff"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Adicione mídias pelo painel em dsignertv.com.br"
+            android:textColor="#6aaeff"
+            android:textSize="16sp"
+            android:gravity="center" />
+
     </LinearLayout>
 
 </FrameLayout>
